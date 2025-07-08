@@ -10,26 +10,15 @@
 
 stages:
   download:
-    cmd: stages/01_download.sh
+    cmd: stages/00_update_biobricks_deps.sh
     deps:
-      - stages/01_download.sh
+      - stages/00_update_biobricks_deps.sh
     outs:
-      - download
-      - list
-  unzip: 
-    cmd: stages/02_unzip.sh
+      - .bb
+  process: 
+    cmd: stages/01_process.py
     deps:
-      - stages/02_unzip.sh
-      - download
-      - list
+      - stages/01_process.py
+      - .bb
     outs:
-      - raw
-  build: 
-    cmd: stages/03_build.sh
-    deps:
-      - stages/03_build.sh
-      - stages/csv2parquet.sh
-      - raw
-      - list
-    outs:
-      - brick
+      - cache
