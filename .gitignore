@@ -2,3 +2,5 @@ logs
 /download
 /list
 /brick
+/cache
+/.bb
