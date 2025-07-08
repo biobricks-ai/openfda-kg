@@ -9,16 +9,14 @@
 # dvc repro <stage>
 
 stages:
-  download:
+  update_biobricks_dependencies:
     cmd: stages/00_update_biobricks_deps.sh
     deps:
       - stages/00_update_biobricks_deps.sh
-    outs:
-      - .bb
   process: 
     cmd: stages/01_process.py
     deps:
       - stages/01_process.py
-      - .bb
+      - .bb/dependencies.txt
     outs:
-      - cache
+      - cache/process/combined_relations.ttl

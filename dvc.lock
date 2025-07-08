@@ -1,2 +1,10 @@
 schema: '2.0'
-stages: {}
+stages:
+  update_biobricks_dependencies:
+    cmd: stages/00_update_biobricks_deps.sh
+    deps:
+    - path: stages/00_update_biobricks_deps.sh
+      hash: md5
+      md5: 9efdfd61fbc69ea6592d7b4e5a3c871d
+      size: 153
+      isexec: true
