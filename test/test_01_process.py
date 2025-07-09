@@ -38,15 +38,16 @@ process_01 = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(process_01)
 
 # Now import the functions from the loaded module
-build_application_uri = process_01.build_application_uri
-build_company_uri = process_01.build_company_uri
-build_substance_uri = process_01.build_substance_uri
-build_ndc_uri = process_01.build_ndc_uri
-build_rxcui_uri = process_01.build_rxcui_uri
-build_spl_uri = process_01.build_spl_uri
-build_dosage_form_uri = process_01.build_dosage_form_uri
-build_route_uri = process_01.build_route_uri
-build_ingredient_uri = process_01.build_ingredient_uri
+uri_builders = process_01.uri_builders
+build_application_uri = uri_builders.build_application_uri
+build_company_uri = uri_builders.build_company_uri
+build_substance_uri = uri_builders.build_substance_uri
+build_ndc_uri = uri_builders.build_ndc_uri
+build_rxcui_uri = uri_builders.build_rxcui_uri
+build_spl_uri = uri_builders.build_spl_uri
+build_dosage_form_uri = uri_builders.build_dosage_form_uri
+build_route_uri = uri_builders.build_route_uri
+build_ingredient_uri = uri_builders.build_ingredient_uri
 safe_get_array_items = process_01.safe_get_array_items
 extract_relationships_from_row = process_01.extract_relationships_from_row
 namespaces = process_01.namespaces
