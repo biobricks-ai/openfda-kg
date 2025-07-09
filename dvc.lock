@@ -8,3 +8,21 @@ stages:
       md5: 9efdfd61fbc69ea6592d7b4e5a3c871d
       size: 153
       isexec: true
+  process:
+    cmd: uv run python3 stages/01_process.py
+    deps:
+    - path: .bb/dependencies.txt
+      hash: md5
+      md5: 0842e236a1c07006f202d20309d90893
+      size: 81
+    - path: stages/01_process.py
+      hash: md5
+      md5: b967e1e41cda267ea33a1e64e582bcf5
+      size: 18114
+      isexec: true
+    outs:
+    - path: cache/process
+      hash: md5
+      md5: 102aa3a3bfe1534172d4b611ea951744.dir
+      size: 93911418
+      nfiles: 29

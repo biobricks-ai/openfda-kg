@@ -20,4 +20,4 @@ stages:
       - stages/01_process.py
       - .bb/dependencies.txt
     outs:
-      - cache/process/combined_relations.ttl
+      - cache/process
