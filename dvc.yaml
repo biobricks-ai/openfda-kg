@@ -10,11 +10,12 @@
 
 stages:
   update_biobricks_dependencies:
-    cmd: stages/00_update_biobricks_deps.sh
+    cmd: uv run stages/00_update_biobricks_deps.sh
     deps:
       - stages/00_update_biobricks_deps.sh
+    always_changed: true
   process: 
-    cmd: stages/01_process.py
+    cmd: uv run python3 stages/01_process.py
     deps:
       - stages/01_process.py
       - .bb/dependencies.txt

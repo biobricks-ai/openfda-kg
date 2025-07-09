@@ -1,7 +1,7 @@
 schema: '2.0'
 stages:
   update_biobricks_dependencies:
-    cmd: stages/00_update_biobricks_deps.sh
+    cmd: uv run stages/00_update_biobricks_deps.sh
     deps:
     - path: stages/00_update_biobricks_deps.sh
       hash: md5
