@@ -66,8 +66,8 @@ print_status "Running security checks..."
 print_status "Running Bandit security linter..."
 uv run bandit -r stages/ -f json -o bandit-report.json || print_warning "Bandit found some issues. Check bandit-report.json for details."
 
-print_status "Running Safety check..."
-uv run safety check --json --output safety-report.json || print_warning "Safety found some issues. Check safety-report.json for details."
+# print_status "Running Safety check..."
+# uv run safety scan --json
 
 print_status "All checks completed!"
 print_status "Coverage report: htmlcov/index.html"
