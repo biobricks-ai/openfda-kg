@@ -22,17 +22,17 @@ outdir = pathlib.Path('./brick')
 outdir.mkdir(parents=True, exist_ok=True)
 
 print("Loading openFDA brick …")
-# of_brick = bb.assets('openfda')
-# print("Done.")
-# # use pyarrow to read the relevant parquet file in chunks
-# rawpa = pq.ParquetFile(of_brick.drugs_fda_parquet)
-# n_row = rawpa.metadata.num_rows
-# print(f"Number of rows: {n_row}")
-
-print("Loading parquet file …")
-rawpa = pq.ParquetFile('drugs_fda.parquet')
+of_brick = bb.assets('openfda')
+print("Done.")
+# use pyarrow to read the relevant parquet file in chunks
+rawpa = pq.ParquetFile(of_brick.drugs_fda_parquet)
 n_row = rawpa.metadata.num_rows
 print(f"Number of rows: {n_row}")
+
+# print("Loading parquet file …")
+# rawpa = pq.ParquetFile('drugs_fda.parquet')
+# n_row = rawpa.metadata.num_rows
+# print(f"Number of rows: {n_row}")
 
 # get row0 and make it json for a pretty print
 row_group0 = rawpa.read_row_group(0).to_pandas()
