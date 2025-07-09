@@ -3,5 +3,5 @@ logs
 /list
 /brick
 /cache
-drugs_fda.parquet
-01_process_example.py
+.vscode
+*/__pycache__
