@@ -17,14 +17,18 @@ stages:
       size: 81
     - path: stages/01_process.py
       hash: md5
-      md5: e813e41b6c4fa6b2d8cd7bb28003dc0c
-      size: 18110
+      md5: e7bd717341c646fe89c48f1a4ed06e1a
+      size: 22239
       isexec: true
+    - path: stages/predicates.py
+      hash: md5
+      md5: 5f404a5d171b9e914f319a34063a6344
+      size: 9354
     outs:
     - path: cache/process
       hash: md5
-      md5: 102aa3a3bfe1534172d4b611ea951744.dir
-      size: 93911418
+      md5: 9c811f494abf5e37e795e1bdee9b279e.dir
+      size: 118795175
       nfiles: 29
   biobricks_init:
     cmd: uv run stages/00_biobricks_init.sh

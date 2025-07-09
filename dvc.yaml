@@ -18,6 +18,8 @@ stages:
     cmd: uv run python3 stages/01_process.py
     deps:
       - stages/01_process.py
+      - stages/predicates.py
+      - stages/uri_builders.py
       - .bb/dependencies.txt
     outs:
       - cache/process
