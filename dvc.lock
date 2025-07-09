@@ -13,12 +13,12 @@ stages:
     deps:
     - path: .bb/dependencies.txt
       hash: md5
-      md5: 0842e236a1c07006f202d20309d90893
+      md5: aaae1b8918493bd50f929cc609f654d6
       size: 81
     - path: stages/01_process.py
       hash: md5
-      md5: b967e1e41cda267ea33a1e64e582bcf5
-      size: 18114
+      md5: e813e41b6c4fa6b2d8cd7bb28003dc0c
+      size: 18110
       isexec: true
     outs:
     - path: cache/process
@@ -26,3 +26,11 @@ stages:
       md5: 102aa3a3bfe1534172d4b611ea951744.dir
       size: 93911418
       nfiles: 29
+  biobricks_init:
+    cmd: uv run stages/00_biobricks_init.sh
+    deps:
+    - path: stages/00_biobricks_init.sh
+      hash: md5
+      md5: 9efdfd61fbc69ea6592d7b4e5a3c871d
+      size: 153
+      isexec: true

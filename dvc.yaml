@@ -9,10 +9,10 @@
 # dvc repro <stage>
 
 stages:
-  update_biobricks_dependencies:
-    cmd: uv run stages/00_update_biobricks_deps.sh
+  biobricks_init:
+    cmd: uv run stages/00_biobricks_init.sh
     deps:
-      - stages/00_update_biobricks_deps.sh
+      - stages/00_biobricks_init.sh
     always_changed: true
   process: 
     cmd: uv run python3 stages/01_process.py
