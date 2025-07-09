@@ -3,6 +3,5 @@ logs
 /list
 /brick
 /cache
-/.bb
 drugs_fda.parquet
 01_process_example.py
