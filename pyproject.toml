@@ -105,6 +105,7 @@ omit = [
     "*/venv/*",
     "*/.venv/*",
 ]
+data_file = "reports/.coverage"
 
 [tool.coverage.report]
 exclude_lines = [

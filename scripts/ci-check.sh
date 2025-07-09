@@ -42,7 +42,7 @@ print_status "Installing dependencies..."
 uv sync --frozen
 
 print_status "Running tests with coverage..."
-uv run pytest test/ -v --cov=stages --cov-report=term-missing --cov-report=xml --cov-report=html --junitxml=pytest-report.xml
+uv run pytest test/ -v --cov=stages --cov-report=term-missing --cov-report=xml:reports/coverage.xml --cov-report=html:reports/htmlcov --junitxml=reports/pytest-report.xml
 
 print_status "Running linting checks..."
 
@@ -64,16 +64,16 @@ uv run isort --check-only --diff stages/ test/
 print_status "Running security checks..."
 
 print_status "Running Bandit security linter..."
-uv run bandit -r stages/ -f json -o bandit-report.json || print_warning "Bandit found some issues. Check bandit-report.json for details."
+uv run bandit -r stages/ -f json -o reports/bandit-report.json || print_warning "Bandit found some issues. Check reports/bandit-report.json for details."
 
 # print_status "Running Safety check..."
 # uv run safety scan --json
 
 print_status "All checks completed!"
-print_status "Coverage report: htmlcov/index.html"
-print_status "Coverage files: .coverage, coverage.xml"
-print_status "Test report: pytest-report.xml"
-print_status "Security reports: bandit-report.json, safety-report.json"
+print_status "Coverage report: reports/htmlcov/index.html"
+print_status "Coverage files: .coverage, reports/coverage.xml"
+print_status "Test report: reports/pytest-report.xml"
+print_status "Security reports: reports/bandit-report.json, reports/safety-report.json"
 
 echo ""
 echo "🎉 All CI/CD checks passed locally!"

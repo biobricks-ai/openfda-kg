@@ -6,6 +6,9 @@ logs
 .vscode
 */__pycache__
 
+# Reports directory
+reports/
+
 # Coverage and test reports
 .coverage
 coverage.xml
