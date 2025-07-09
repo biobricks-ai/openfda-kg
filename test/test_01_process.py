@@ -32,7 +32,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 # Import the module properly using importlib
 spec = importlib.util.spec_from_file_location(
     "process_01",
-    os.path.join(os.path.dirname(__file__), '..', 'stages', '01_process.py')
+    os.path.join(os.path.dirname(__file__), "..", "stages", "01_process.py"),
 )
 process_01 = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(process_01)
@@ -78,7 +78,7 @@ class TestConstants:
                 "submission_number": "50",
                 "submission_status": "AP",
                 "submission_status_date": "20230720",
-                "submission_type": "SUPPL"
+                "submission_type": "SUPPL",
             }
         ],
         "openfda": {
@@ -93,14 +93,14 @@ class TestConstants:
             "rxcui": [SAMPLE_RXCUI, "892251"],
             "spl_set_id": [SAMPLE_SPL_ID],
             "substance_name": [SAMPLE_BRAND_NAME],
-            "unii": [SAMPLE_UNII]
+            "unii": [SAMPLE_UNII],
         },
         "products": [
             {
                 "active_ingredients": [
                     {
                         "name": SAMPLE_BRAND_NAME,
-                        "strength": "0.175MG **See current Annual Edition"
+                        "strength": "0.175MG **See current Annual Edition",
                     }
                 ],
                 "brand_name": SAMPLE_BRAND_NAME,
@@ -110,22 +110,22 @@ class TestConstants:
                 "reference_drug": "No",
                 "reference_standard": "No",
                 "route": "ORAL",
-                "te_code": "AB4"
+                "te_code": "AB4",
             },
             {
                 "active_ingredients": [
                     {
                         "name": SAMPLE_BRAND_NAME,
-                        "strength": "0.125MG **See current Annual Edition"
+                        "strength": "0.125MG **See current Annual Edition",
                     }
                 ],
                 "brand_name": SAMPLE_BRAND_NAME,
                 "dosage_form": "TABLET",
                 "marketing_status": "Prescription",
                 "product_number": "007",
-                "route": "ORAL"
-            }
-        ]
+                "route": "ORAL",
+            },
+        ],
     }
 
 
@@ -148,7 +148,7 @@ def sample_fda_row_minimal():
         "application_number": TestConstants.SAMPLE_APPLICATION_NUMBER,
         "sponsor_name": TestConstants.SAMPLE_SPONSOR_NAME,
         "openfda": None,
-        "products": None
+        "products": None,
     }
 
 
@@ -159,7 +159,7 @@ def sample_fda_row_empty():
         "application_number": None,
         "sponsor_name": None,
         "openfda": {},
-        "products": []
+        "products": [],
     }
 
 
@@ -179,7 +179,7 @@ def expected_namespaces():
         "ExO": "http://purl.obolibrary.org/obo/ExO_",
         "CHEMINF": "http://purl.obolibrary.org/obo/CHEMINF_",
         "biolink": "https://w3id.org/biolink/vocab/",
-        "BAO": "http://www.bioassayontology.org/bao#BAO_"
+        "BAO": "http://www.bioassayontology.org/bao#BAO_",
     }
 
 
@@ -223,7 +223,7 @@ class RDFTestUtils:
     @staticmethod
     def validate_uri_format(uri_str, expected_base):
         """Validate URI format and base"""
-        return uri_str.startswith(expected_base) and '://' in uri_str
+        return uri_str.startswith(expected_base) and "://" in uri_str
 
 
 class TestURIBuilders:
@@ -244,7 +244,7 @@ class TestURIBuilders:
         result = build_application_uri(app_number)
 
         # Should be URL encoded
-        assert quote(app_number, safe='') in str(result)
+        assert quote(app_number, safe="") in str(result)
         assert str(result).startswith("https://api.fda.gov/drug/application/")
 
     def test_build_company_uri_basic(self):
@@ -262,9 +262,9 @@ class TestURIBuilders:
 
         # Should replace spaces with underscores and remove commas/periods from company name
         assert "Mylan_Pharmaceuticals_Inc" in str(result)
-        assert " " not in str(result).split('/')[-1]  # No spaces in company name part
-        assert "," not in str(result).split('/')[-1]  # No commas in company name part
-        assert "." not in str(result).split('/')[-1]  # No periods in company name part
+        assert " " not in str(result).split("/")[-1]  # No spaces in company name part
+        assert "," not in str(result).split("/")[-1]  # No commas in company name part
+        assert "." not in str(result).split("/")[-1]  # No periods in company name part
 
     def test_build_substance_uri(self):
         """Test UNII substance URI building"""
@@ -279,7 +279,9 @@ class TestURIBuilders:
         ndc = "0378-1800-77"
         result = build_ndc_uri(ndc)
 
-        expected = URIRef("https://www.fda.gov/industry/structured-product-labeling-resources/ndc-directory/0378-1800-77")
+        expected = URIRef(
+            "https://www.fda.gov/industry/structured-product-labeling-resources/ndc-directory/0378-1800-77"
+        )
         assert result == expected
 
     def test_build_rxcui_uri(self):
@@ -287,7 +289,9 @@ class TestURIBuilders:
         rxcui = "892246"
         result = build_rxcui_uri(rxcui)
 
-        expected = URIRef("https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=892246")
+        expected = URIRef(
+            "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=892246"
+        )
         assert result == expected
 
     def test_build_spl_uri(self):
@@ -295,7 +299,9 @@ class TestURIBuilders:
         spl_id = "e95720f2-91c9-a6d0-f7d5-8bcb94d07bbc"
         result = build_spl_uri(spl_id)
 
-        expected = URIRef("https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=e95720f2-91c9-a6d0-f7d5-8bcb94d07bbc")
+        expected = URIRef(
+            "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=e95720f2-91c9-a6d0-f7d5-8bcb94d07bbc"
+        )
         assert result == expected
 
     def test_build_dosage_form_uri(self):
@@ -323,7 +329,9 @@ class TestURIBuilders:
 
         # Should replace spaces and remove punctuation
         assert "Levothyroxine_Sodium_USP" in str(result)
-        assert str(result).startswith("http://purl.obolibrary.org/obo/CHEMINF_ingredient/")
+        assert str(result).startswith(
+            "http://purl.obolibrary.org/obo/CHEMINF_ingredient/"
+        )
 
 
 class TestSafeGetArrayItems:
@@ -383,13 +391,22 @@ class TestRelationshipExtraction:
         sponsor_uri = build_company_uri(TestConstants.SAMPLE_SPONSOR_NAME)
 
         # Check application-sponsor relationship
-        assert RDFTestUtils.has_triple(graph, app_uri, namespaces["SIO"]["000136"], sponsor_uri)
+        assert RDFTestUtils.has_triple(
+            graph, app_uri, namespaces["SIO"]["000136"], sponsor_uri
+        )
 
         # Check sponsor typing
-        assert RDFTestUtils.has_triple(graph, sponsor_uri, namespaces["rdf"]["type"], namespaces["SIO"]["000012"])
+        assert RDFTestUtils.has_triple(
+            graph, sponsor_uri, namespaces["rdf"]["type"], namespaces["SIO"]["000012"]
+        )
 
         # Check sponsor label
-        assert RDFTestUtils.has_triple(graph, sponsor_uri, namespaces["rdfs"]["label"], Literal(TestConstants.SAMPLE_SPONSOR_NAME))
+        assert RDFTestUtils.has_triple(
+            graph,
+            sponsor_uri,
+            namespaces["rdfs"]["label"],
+            Literal(TestConstants.SAMPLE_SPONSOR_NAME),
+        )
 
     def test_extract_openfda_brand_names(self, sample_fda_row):
         """Test extraction of brand names from OpenFDA data"""
@@ -399,11 +416,15 @@ class TestRelationshipExtraction:
         app_uri = build_application_uri(TestConstants.SAMPLE_APPLICATION_NUMBER)
 
         # Check brand name relationships
-        brand_name_objects = RDFTestUtils.get_objects_for_predicate(graph, app_uri, namespaces["skos"]["prefLabel"])
+        brand_name_objects = RDFTestUtils.get_objects_for_predicate(
+            graph, app_uri, namespaces["skos"]["prefLabel"]
+        )
         assert Literal(TestConstants.SAMPLE_BRAND_NAME) in brand_name_objects
 
         # Check SIO attribute relationship
-        sio_attr_objects = RDFTestUtils.get_objects_for_predicate(graph, app_uri, namespaces["SIO"]["000008"])
+        sio_attr_objects = RDFTestUtils.get_objects_for_predicate(
+            graph, app_uri, namespaces["SIO"]["000008"]
+        )
         assert Literal(TestConstants.SAMPLE_BRAND_NAME) in sio_attr_objects
 
     def test_extract_manufacturer_relationships(self, sample_fda_row):
@@ -415,10 +436,14 @@ class TestRelationshipExtraction:
         mfg_uri = build_company_uri(TestConstants.SAMPLE_MANUFACTURER_NAME)
 
         # Check manufactured by relationship
-        assert RDFTestUtils.has_triple(graph, app_uri, namespaces["RO"]["0002234"], mfg_uri)
+        assert RDFTestUtils.has_triple(
+            graph, app_uri, namespaces["RO"]["0002234"], mfg_uri
+        )
 
         # Check manufacturer typing
-        assert RDFTestUtils.has_triple(graph, mfg_uri, namespaces["rdf"]["type"], namespaces["SIO"]["000012"])
+        assert RDFTestUtils.has_triple(
+            graph, mfg_uri, namespaces["rdf"]["type"], namespaces["SIO"]["000012"]
+        )
 
     def test_extract_ndc_relationships(self, sample_fda_row):
         """Test extraction of NDC code relationships"""
@@ -429,10 +454,14 @@ class TestRelationshipExtraction:
         ndc_uri = build_ndc_uri(TestConstants.SAMPLE_NDC)
 
         # Check has identifier relationship
-        assert RDFTestUtils.has_triple(graph, app_uri, namespaces["SIO"]["000671"], ndc_uri)
+        assert RDFTestUtils.has_triple(
+            graph, app_uri, namespaces["SIO"]["000671"], ndc_uri
+        )
 
         # Check NDC typing
-        assert RDFTestUtils.has_triple(graph, ndc_uri, namespaces["rdf"]["type"], namespaces["IAO"]["0000578"])
+        assert RDFTestUtils.has_triple(
+            graph, ndc_uri, namespaces["rdf"]["type"], namespaces["IAO"]["0000578"]
+        )
 
     def test_extract_unii_relationships(self, sample_fda_row):
         """Test extraction of UNII substance relationships"""
@@ -443,10 +472,17 @@ class TestRelationshipExtraction:
         substance_uri = build_substance_uri(TestConstants.SAMPLE_UNII)
 
         # Check has participant relationship
-        assert RDFTestUtils.has_triple(graph, app_uri, namespaces["RO"]["0000057"], substance_uri)
+        assert RDFTestUtils.has_triple(
+            graph, app_uri, namespaces["RO"]["0000057"], substance_uri
+        )
 
         # Check substance typing
-        assert RDFTestUtils.has_triple(graph, substance_uri, namespaces["rdf"]["type"], namespaces["CHEMINF"]["000000"])
+        assert RDFTestUtils.has_triple(
+            graph,
+            substance_uri,
+            namespaces["rdf"]["type"],
+            namespaces["CHEMINF"]["000000"],
+        )
 
     def test_extract_rxcui_relationships(self, sample_fda_row):
         """Test extraction of RxCUI relationships"""
@@ -457,10 +493,14 @@ class TestRelationshipExtraction:
         rxcui_uri = build_rxcui_uri(TestConstants.SAMPLE_RXCUI)
 
         # Check has identifier relationship
-        assert RDFTestUtils.has_triple(graph, app_uri, namespaces["SIO"]["000671"], rxcui_uri)
+        assert RDFTestUtils.has_triple(
+            graph, app_uri, namespaces["SIO"]["000671"], rxcui_uri
+        )
 
         # Check RxCUI typing
-        assert RDFTestUtils.has_triple(graph, rxcui_uri, namespaces["rdf"]["type"], namespaces["biolink"]["Drug"])
+        assert RDFTestUtils.has_triple(
+            graph, rxcui_uri, namespaces["rdf"]["type"], namespaces["biolink"]["Drug"]
+        )
 
     def test_extract_spl_relationships(self, sample_fda_row):
         """Test extraction of SPL document relationships"""
@@ -471,10 +511,14 @@ class TestRelationshipExtraction:
         spl_uri = build_spl_uri(TestConstants.SAMPLE_SPL_ID)
 
         # Check has document relationship
-        assert RDFTestUtils.has_triple(graph, app_uri, namespaces["SIO"]["000068"], spl_uri)
+        assert RDFTestUtils.has_triple(
+            graph, app_uri, namespaces["SIO"]["000068"], spl_uri
+        )
 
         # Check SPL typing
-        assert RDFTestUtils.has_triple(graph, spl_uri, namespaces["rdf"]["type"], namespaces["IAO"]["0000310"])
+        assert RDFTestUtils.has_triple(
+            graph, spl_uri, namespaces["rdf"]["type"], namespaces["IAO"]["0000310"]
+        )
 
     def test_extract_route_relationships(self, sample_fda_row):
         """Test extraction of route of administration relationships"""
@@ -485,10 +529,14 @@ class TestRelationshipExtraction:
         route_uri = build_route_uri("ORAL")
 
         # Check exposure route relationship
-        assert RDFTestUtils.has_triple(graph, app_uri, namespaces["ExO"]["0000002"], route_uri)
+        assert RDFTestUtils.has_triple(
+            graph, app_uri, namespaces["ExO"]["0000002"], route_uri
+        )
 
         # Check route typing
-        assert RDFTestUtils.has_triple(graph, route_uri, namespaces["rdf"]["type"], namespaces["ExO"]["0000055"])
+        assert RDFTestUtils.has_triple(
+            graph, route_uri, namespaces["rdf"]["type"], namespaces["ExO"]["0000055"]
+        )
 
     def test_extract_product_relationships(self, sample_fda_row):
         """Test extraction of product-level relationships"""
@@ -498,7 +546,9 @@ class TestRelationshipExtraction:
         app_uri = build_application_uri(TestConstants.SAMPLE_APPLICATION_NUMBER)
 
         # Check product relationships - should have multiple products
-        product_uris = RDFTestUtils.get_objects_for_predicate(graph, app_uri, namespaces["RO"]["0000057"])
+        product_uris = RDFTestUtils.get_objects_for_predicate(
+            graph, app_uri, namespaces["RO"]["0000057"]
+        )
         product_uris = [uri for uri in product_uris if "/product/" in str(uri)]
 
         assert len(product_uris) == 2  # Sample has 2 products
@@ -508,7 +558,12 @@ class TestRelationshipExtraction:
         assert product_0_uri in product_uris
 
         # Check product typing
-        assert RDFTestUtils.has_triple(graph, product_0_uri, namespaces["rdf"]["type"], namespaces["biolink"]["Drug"])
+        assert RDFTestUtils.has_triple(
+            graph,
+            product_0_uri,
+            namespaces["rdf"]["type"],
+            namespaces["biolink"]["Drug"],
+        )
 
     def test_extract_ingredient_relationships(self, sample_fda_row):
         """Test extraction of active ingredient relationships"""
@@ -520,13 +575,22 @@ class TestRelationshipExtraction:
         ingredient_0_uri = URIRef(f"{product_0_uri}/ingredient/0")
 
         # Check ingredient relationships
-        assert RDFTestUtils.has_triple(graph, product_0_uri, namespaces["RO"]["0000057"], ingredient_0_uri)
+        assert RDFTestUtils.has_triple(
+            graph, product_0_uri, namespaces["RO"]["0000057"], ingredient_0_uri
+        )
 
         # Check ingredient typing
-        assert RDFTestUtils.has_triple(graph, ingredient_0_uri, namespaces["rdf"]["type"], namespaces["CHEMINF"]["000000"])
+        assert RDFTestUtils.has_triple(
+            graph,
+            ingredient_0_uri,
+            namespaces["rdf"]["type"],
+            namespaces["CHEMINF"]["000000"],
+        )
 
         # Check ingredient component relationship
-        assert RDFTestUtils.has_triple(graph, ingredient_0_uri, namespaces["SIO"]["000228"], product_0_uri)
+        assert RDFTestUtils.has_triple(
+            graph, ingredient_0_uri, namespaces["SIO"]["000228"], product_0_uri
+        )
 
     def test_extract_strength_measurements(self, sample_fda_row):
         """Test extraction of ingredient strength measurements"""
@@ -539,14 +603,20 @@ class TestRelationshipExtraction:
         strength_uri = URIRef(f"{ingredient_0_uri}/strength")
 
         # Check strength measurement relationships
-        assert RDFTestUtils.has_triple(graph, ingredient_0_uri, namespaces["SIO"]["000221"], strength_uri)
+        assert RDFTestUtils.has_triple(
+            graph, ingredient_0_uri, namespaces["SIO"]["000221"], strength_uri
+        )
 
         # Check strength typing
-        assert RDFTestUtils.has_triple(graph, strength_uri, namespaces["rdf"]["type"], namespaces["SIO"]["000052"])
+        assert RDFTestUtils.has_triple(
+            graph, strength_uri, namespaces["rdf"]["type"], namespaces["SIO"]["000052"]
+        )
 
         # Check strength value
         strength_value = "0.175MG **See current Annual Edition"
-        assert RDFTestUtils.has_triple(graph, strength_uri, namespaces["SIO"]["000300"], Literal(strength_value))
+        assert RDFTestUtils.has_triple(
+            graph, strength_uri, namespaces["SIO"]["000300"], Literal(strength_value)
+        )
 
 
 class TestEdgeCases:
@@ -564,8 +634,6 @@ class TestEdgeCases:
 
         triples = extract_relationships_from_row(row)
         graph = RDFTestUtils.create_test_graph(triples)
-
-        app_uri = build_application_uri(TestConstants.SAMPLE_APPLICATION_NUMBER)
 
         # Should not have sponsor relationships
         sponsor_triples = [t for t in graph if namespaces["SIO"]["000136"] in t]
@@ -594,13 +662,12 @@ class TestEdgeCases:
                 "manufacturer_name": None,
                 "package_ndc": None,
                 "unii": None,
-                "rxcui": None
+                "rxcui": None,
             },
-            "products": None
+            "products": None,
         }
 
         triples = extract_relationships_from_row(row)
-        graph = RDFTestUtils.create_test_graph(triples)
 
         # Should handle gracefully without errors
         assert isinstance(triples, list)
@@ -620,12 +687,14 @@ class TestEdgeCases:
     def test_malformed_product_data(self, sample_fda_row):
         """Test handling of malformed product data"""
         row = sample_fda_row.copy()
-        row["products"] = np.array([
-            {"invalid": "data"},
-            None,
-            {"brand_name": "TEST", "dosage_form": None},
-            "not_a_dict"
-        ])
+        row["products"] = np.array(
+            [
+                {"invalid": "data"},
+                None,
+                {"brand_name": "TEST", "dosage_form": None},
+                "not_a_dict",
+            ]
+        )
 
         triples = extract_relationships_from_row(row)
 
@@ -645,7 +714,7 @@ class TestNamespaceValidation:
     def test_namespace_objects_created(self):
         """Test that namespace objects are created correctly"""
         for prefix, namespace_obj in namespaces.items():
-            assert hasattr(namespace_obj, '__str__')
+            assert hasattr(namespace_obj, "__str__")
             assert str(namespace_obj) == namespaces_sources[prefix]
 
     def test_ontology_uri_validity(self):
@@ -714,17 +783,19 @@ class TestIntegration:
         app_uri = build_application_uri(TestConstants.SAMPLE_APPLICATION_NUMBER)
 
         # Test that application is properly typed
-        types = RDFTestUtils.get_objects_for_predicate(graph, app_uri, namespaces["rdf"]["type"])
+        types = RDFTestUtils.get_objects_for_predicate(
+            graph, app_uri, namespaces["rdf"]["type"]
+        )
         assert namespaces["BAO"]["0000040"] in types
 
         # Test that all subjects are valid URIs
-        subjects = set(t[0] for t in graph)
+        subjects = {t[0] for t in graph}
         for subject in subjects:
             assert isinstance(subject, URIRef)
             assert "://" in str(subject)
 
         # Test that predicates use proper namespaces
-        predicates = set(t[1] for t in graph)
+        predicates = {t[1] for t in graph}
         for predicate in predicates:
             assert isinstance(predicate, URIRef)
             predicate_str = str(predicate)
@@ -733,7 +804,9 @@ class TestIntegration:
                 predicate_str.startswith(ns_uri)
                 for ns_uri in namespaces_sources.values()
             )
-            assert namespace_found, f"Predicate {predicate_str} doesn't use defined namespace"
+            assert (
+                namespace_found
+            ), f"Predicate {predicate_str} doesn't use defined namespace"
 
 
 class TestPerformance:
@@ -748,7 +821,7 @@ class TestPerformance:
             "openfda": {
                 "package_ndc": [f"0000-{i:04d}-00" for i in range(100)],
                 "rxcui": [str(i) for i in range(100, 200)],
-                "brand_name": [f"BRAND_{i}" for i in range(50)]
+                "brand_name": [f"BRAND_{i}" for i in range(50)],
             },
             "products": [
                 {
@@ -756,17 +829,17 @@ class TestPerformance:
                     "dosage_form": "TABLET",
                     "route": "ORAL",
                     "active_ingredients": [
-                        {
-                            "name": f"INGREDIENT_{j}",
-                            "strength": f"{j}MG"
-                        } for j in range(5)
-                    ]
-                } for i in range(20)
-            ]
+                        {"name": f"INGREDIENT_{j}", "strength": f"{j}MG"}
+                        for j in range(5)
+                    ],
+                }
+                for i in range(20)
+            ],
         }
 
         # Should process without performance issues
         import time
+
         start_time = time.time()
         triples = extract_relationships_from_row(large_row)
         end_time = time.time()
@@ -788,18 +861,18 @@ class TestPerformance:
                 "sponsor_name": f"COMPANY_{i}",
                 "openfda": {
                     "package_ndc": [f"{i:04d}-{j:04d}-00" for j in range(50)],
-                    "rxcui": [str(j + i * 100) for j in range(50)]
+                    "rxcui": [str(j + i * 100) for j in range(50)],
                 },
                 "products": [
                     {
                         "brand_name": f"PRODUCT_{i}_{j}",
                         "dosage_form": "TABLET",
                         "active_ingredients": [
-                            {"name": f"ING_{k}", "strength": f"{k}MG"}
-                            for k in range(3)
-                        ]
-                    } for j in range(10)
-                ]
+                            {"name": f"ING_{k}", "strength": f"{k}MG"} for k in range(3)
+                        ],
+                    }
+                    for j in range(10)
+                ],
             }
 
             triples = extract_relationships_from_row(row)

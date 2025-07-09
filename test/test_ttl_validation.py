@@ -22,8 +22,19 @@ from rdflib.plugins.parsers.notation3 import BadSyntax
 # Add the parent directory to the path
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-# Execute the script to import all functions
-exec(open(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'stages', '01_process.py')).read())
+# Import the module properly using importlib
+import importlib.util
+
+spec = importlib.util.spec_from_file_location(
+    "process_01",
+    os.path.join(os.path.dirname(__file__), "..", "stages", "01_process.py"),
+)
+process_01 = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(process_01)
+
+# Now import the functions from the loaded module
+extract_relationships_from_row = process_01.extract_relationships_from_row
+namespaces = process_01.namespaces
 
 
 class TTLValidationTest:
@@ -32,7 +43,9 @@ class TTLValidationTest:
     @pytest.fixture
     def sample_data_from_file(self):
         """Load the actual sample data from out.txt"""
-        sample_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'out.txt')
+        sample_path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)), "out.txt"
+        )
         with open(sample_path) as f:
             return json.load(f)
 
@@ -43,8 +56,8 @@ class TTLValidationTest:
         row = pd.Series(sample_data_from_file)
 
         # Convert products to numpy array as the script expects
-        if 'products' in row and row['products'] is not None:
-            row['products'] = np.array(row['products'])
+        if "products" in row and row["products"] is not None:
+            row["products"] = np.array(row["products"])
 
         # Extract relationships
         triples = extract_relationships_from_row(row)
@@ -85,7 +98,7 @@ class TTLValidationTest:
             "@prefix ndc:",
             "@prefix unii:",
             "@prefix rxcui:",
-            "@prefix spl:"
+            "@prefix spl:",
         ]
 
         for prefix in required_prefixes:
@@ -93,35 +106,43 @@ class TTLValidationTest:
 
     def test_application_uri_format(self, generated_ttl_content, sample_data_from_file):
         """Test that application URIs are correctly formatted"""
-        app_number = sample_data_from_file['application_number']
+        app_number = sample_data_from_file["application_number"]
         expected_app_uri = f"<https://api.fda.gov/drug/application/{app_number}>"
 
-        assert expected_app_uri in generated_ttl_content, \
-            f"Application URI {expected_app_uri} not found in TTL"
+        assert (
+            expected_app_uri in generated_ttl_content
+        ), f"Application URI {expected_app_uri} not found in TTL"
 
     def test_sponsor_relationships(self, generated_ttl_content, sample_data_from_file):
         """Test that sponsor relationships are correctly generated"""
-        app_number = sample_data_from_file['application_number']
-        sponsor_name = sample_data_from_file['sponsor_name']
+        app_number = sample_data_from_file["application_number"]
+        sponsor_name = sample_data_from_file["sponsor_name"]
 
         # Clean sponsor name as the script does
-        clean_sponsor = sponsor_name.replace(' ', '_').replace(',', '').replace('.', '')
+        clean_sponsor = sponsor_name.replace(" ", "_").replace(",", "").replace(".", "")
         expected_sponsor_uri = f"company:{clean_sponsor}"
 
         # Check for sponsor relationship
         sponsor_pattern = rf"<https://api\.fda\.gov/drug/application/{re.escape(app_number)}>\s+SIO:000136\s+{re.escape(expected_sponsor_uri)}"
-        assert re.search(sponsor_pattern, generated_ttl_content), \
-            f"Sponsor relationship not found: {sponsor_pattern}"
+        assert re.search(
+            sponsor_pattern, generated_ttl_content
+        ), f"Sponsor relationship not found: {sponsor_pattern}"
 
-    def test_manufacturer_relationships(self, generated_ttl_content, sample_data_from_file):
+    def test_manufacturer_relationships(
+        self, generated_ttl_content, sample_data_from_file
+    ):
         """Test that manufacturer relationships are present"""
-        if 'openfda' in sample_data_from_file and sample_data_from_file['openfda']:
-            manufacturer_names = sample_data_from_file['openfda'].get('manufacturer_name', [])
+        if "openfda" in sample_data_from_file and sample_data_from_file["openfda"]:
+            manufacturer_names = sample_data_from_file["openfda"].get(
+                "manufacturer_name", []
+            )
             if manufacturer_names:
                 # Check for at least one manufacturer relationship
                 found_mfg_relationship = False
                 for mfg_name in manufacturer_names:
-                    clean_mfg = mfg_name.replace(' ', '_').replace(',', '').replace('.', '')
+                    clean_mfg = (
+                        mfg_name.replace(" ", "_").replace(",", "").replace(".", "")
+                    )
                     mfg_pattern = rf"RO:0002234\s+company:{re.escape(clean_mfg)}"
                     if re.search(mfg_pattern, generated_ttl_content):
                         found_mfg_relationship = True
@@ -131,8 +152,8 @@ class TTLValidationTest:
 
     def test_ndc_code_relationships(self, generated_ttl_content, sample_data_from_file):
         """Test that NDC code relationships are correctly generated"""
-        if 'openfda' in sample_data_from_file and sample_data_from_file['openfda']:
-            package_ndcs = sample_data_from_file['openfda'].get('package_ndc', [])
+        if "openfda" in sample_data_from_file and sample_data_from_file["openfda"]:
+            package_ndcs = sample_data_from_file["openfda"].get("package_ndc", [])
             if package_ndcs:
                 # Check for at least one NDC relationship
                 found_ndc = False
@@ -144,20 +165,23 @@ class TTLValidationTest:
 
                 assert found_ndc, "No NDC relationships found"
 
-    def test_unii_substance_relationships(self, generated_ttl_content, sample_data_from_file):
+    def test_unii_substance_relationships(
+        self, generated_ttl_content, sample_data_from_file
+    ):
         """Test that UNII substance relationships are present"""
-        if 'openfda' in sample_data_from_file and sample_data_from_file['openfda']:
-            uniis = sample_data_from_file['openfda'].get('unii', [])
+        if "openfda" in sample_data_from_file and sample_data_from_file["openfda"]:
+            uniis = sample_data_from_file["openfda"].get("unii", [])
             if uniis:
                 for unii in uniis:
                     unii_pattern = rf"unii:{re.escape(unii)}"
-                    assert unii_pattern in generated_ttl_content, \
-                        f"UNII {unii} not found in TTL"
+                    assert (
+                        unii_pattern in generated_ttl_content
+                    ), f"UNII {unii} not found in TTL"
 
     def test_rxcui_relationships(self, generated_ttl_content, sample_data_from_file):
         """Test that RxCUI relationships are present"""
-        if 'openfda' in sample_data_from_file and sample_data_from_file['openfda']:
-            rxcuis = sample_data_from_file['openfda'].get('rxcui', [])
+        if "openfda" in sample_data_from_file and sample_data_from_file["openfda"]:
+            rxcuis = sample_data_from_file["openfda"].get("rxcui", [])
             if rxcuis:
                 # Check for at least one RxCUI
                 found_rxcui = False
@@ -171,30 +195,32 @@ class TTLValidationTest:
 
     def test_product_relationships(self, generated_ttl_content, sample_data_from_file):
         """Test that product relationships are correctly generated"""
-        products = sample_data_from_file.get('products', [])
+        products = sample_data_from_file.get("products", [])
         if products:
-            app_number = sample_data_from_file['application_number']
+            app_number = sample_data_from_file["application_number"]
 
             # Check for product URIs
             for i in range(min(len(products), 3)):  # Check first 3 products
                 product_pattern = rf"<https://api\.fda\.gov/drug/application/{re.escape(app_number)}/product/{i}>"
-                assert re.search(product_pattern, generated_ttl_content), \
-                    f"Product {i} URI not found in TTL"
+                assert re.search(
+                    product_pattern, generated_ttl_content
+                ), f"Product {i} URI not found in TTL"
 
-    def test_ingredient_strength_relationships(self, generated_ttl_content, sample_data_from_file):
+    def test_ingredient_strength_relationships(
+        self, generated_ttl_content, sample_data_from_file
+    ):
         """Test that ingredient strength relationships are present"""
-        products = sample_data_from_file.get('products', [])
+        products = sample_data_from_file.get("products", [])
         if products:
-            app_number = sample_data_from_file['application_number']
-
             # Check for strength measurements in first product
-            if products[0].get('active_ingredients'):
-                ingredient = products[0]['active_ingredients'][0]
-                if ingredient.get('strength'):
+            if products[0].get("active_ingredients"):
+                ingredient = products[0]["active_ingredients"][0]
+                if ingredient.get("strength"):
                     # Look for strength URI pattern
                     strength_pattern = r"/product/0/ingredient/0/strength"
-                    assert strength_pattern in generated_ttl_content, \
-                        "Strength measurement not found in TTL"
+                    assert (
+                        strength_pattern in generated_ttl_content
+                    ), "Strength measurement not found in TTL"
 
     def test_semantic_property_usage(self, generated_ttl_content):
         """Test that semantic properties from ontologies are used correctly"""
@@ -204,10 +230,10 @@ class TTLValidationTest:
             "SIO:000671",  # has identifier
             "RO:0000057",  # has participant
             "RO:0002234",  # manufactured by
-            "IAO:0000578", # centrally registered identifier
-            "CHEMINF:000000", # chemical entity
-            "ExO:0000002", # has exposure route
-            "biolink:Drug"
+            "IAO:0000578",  # centrally registered identifier
+            "CHEMINF:000000",  # chemical entity
+            "ExO:0000002",  # has exposure route
+            "biolink:Drug",
         ]
 
         found_predicates = []
@@ -215,19 +241,22 @@ class TTLValidationTest:
             if predicate in generated_ttl_content:
                 found_predicates.append(predicate)
 
-        assert len(found_predicates) >= 5, \
-            f"Expected at least 5 semantic predicates, found {len(found_predicates)}: {found_predicates}"
+        assert (
+            len(found_predicates) >= 5
+        ), f"Expected at least 5 semantic predicates, found {len(found_predicates)}: {found_predicates}"
 
     def test_literal_values_properly_quoted(self, generated_ttl_content):
         """Test that literal values are properly quoted in TTL"""
         # Check for properly quoted literals
-        brand_name_pattern = r'"[^"]+"\s*;?\s*$'
-        lines_with_literals = [line for line in generated_ttl_content.split('\n')
-                              if '"' in line and not line.strip().startswith('@')]
+        lines_with_literals = [
+            line
+            for line in generated_ttl_content.split("\n")
+            if '"' in line and not line.strip().startswith("@")
+        ]
 
         for line in lines_with_literals:
             # Skip prefix lines and comments
-            if line.strip().startswith('@') or line.strip().startswith('#'):
+            if line.strip().startswith("@") or line.strip().startswith("#"):
                 continue
 
             if '"' in line:
@@ -238,15 +267,15 @@ class TTLValidationTest:
     def test_uri_encoding_correctness(self, generated_ttl_content):
         """Test that URIs are properly encoded"""
         # Find all URIs in angle brackets
-        uri_pattern = r'<([^>]+)>'
+        uri_pattern = r"<([^>]+)>"
         uris = re.findall(uri_pattern, generated_ttl_content)
 
         for uri in uris:
             # Check that URIs don't contain unencoded spaces
-            assert ' ' not in uri, f"URI contains unencoded space: {uri}"
+            assert " " not in uri, f"URI contains unencoded space: {uri}"
 
             # Check that URIs are well-formed
-            assert '://' in uri, f"URI appears malformed: {uri}"
+            assert "://" in uri, f"URI appears malformed: {uri}"
 
     def test_graph_connectivity(self, generated_ttl_content):
         """Test that the RDF graph has proper connectivity"""
@@ -255,10 +284,12 @@ class TTLValidationTest:
         g.parse(data=generated_ttl_content, format="turtle")
 
         # Get all subjects
-        subjects = set(triple[0] for triple in g)
+        subjects = {triple[0] for triple in g}
 
         # Check that we have a reasonable number of entities
-        assert len(subjects) >= 10, f"Expected at least 10 entities, found {len(subjects)}"
+        assert (
+            len(subjects) >= 10
+        ), f"Expected at least 10 entities, found {len(subjects)}"
 
         # Check that entities are connected (have multiple relationships)
         well_connected_entities = 0
@@ -268,8 +299,9 @@ class TTLValidationTest:
                 well_connected_entities += 1
 
         # At least half of the entities should have multiple relationships
-        assert well_connected_entities >= len(subjects) // 2, \
-            "Graph appears poorly connected"
+        assert (
+            well_connected_entities >= len(subjects) // 2
+        ), "Graph appears poorly connected"
 
     def test_data_type_consistency(self, generated_ttl_content):
         """Test that data types are used consistently"""
@@ -280,12 +312,16 @@ class TTLValidationTest:
         # Check that rdf:type relationships use URIRefs, not literals
         type_objects = list(g.objects(predicate=RDF.type))
         for obj in type_objects:
-            assert isinstance(obj, URIRef), f"rdf:type object should be URIRef, got {type(obj)}: {obj}"
+            assert isinstance(
+                obj, URIRef
+            ), f"rdf:type object should be URIRef, got {type(obj)}: {obj}"
 
         # Check that label relationships use literals
         label_objects = list(g.objects(predicate=RDFS.label))
         for obj in label_objects:
-            assert isinstance(obj, Literal), f"rdfs:label object should be Literal, got {type(obj)}: {obj}"
+            assert isinstance(
+                obj, Literal
+            ), f"rdfs:label object should be Literal, got {type(obj)}: {obj}"
 
 
 class TTLComparisonTest:
@@ -294,24 +330,26 @@ class TTLComparisonTest:
     def test_output_matches_expected_structure(self):
         """Test that the output structure matches expected patterns from the provided sample"""
         # Load sample data
-        sample_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'out.txt')
+        sample_path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)), "out.txt"
+        )
         with open(sample_path) as f:
             sample_data = json.load(f)
 
         # Process the data
         row = pd.Series(sample_data)
-        if 'products' in row and row['products'] is not None:
-            row['products'] = np.array(row['products'])
+        if "products" in row and row["products"] is not None:
+            row["products"] = np.array(row["products"])
 
         triples = extract_relationships_from_row(row)
 
         # Create expected patterns based on the sample data
-        app_number = sample_data['application_number']
+        app_number = sample_data["application_number"]
         expected_patterns = [
             f"<https://api.fda.gov/drug/application/{app_number}>",
             "a BAO:0000040",  # Should be typed as bioassay
-            "SIO:000136",     # Should have sponsor relationship
-            "RO:0000057",     # Should have participant relationships
+            "SIO:000136",  # Should have sponsor relationship
+            "RO:0000057",  # Should have participant relationships
             "dcterms:identifier",  # Should have identifier
         ]
 
@@ -331,33 +369,35 @@ class TTLComparisonTest:
 
     def test_comprehensive_relationship_coverage(self):
         """Test that all expected relationship types are covered"""
-        sample_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'out.txt')
+        sample_path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)), "out.txt"
+        )
         with open(sample_path) as f:
             sample_data = json.load(f)
 
         row = pd.Series(sample_data)
-        if 'products' in row and row['products'] is not None:
-            row['products'] = np.array(row['products'])
+        if "products" in row and row["products"] is not None:
+            row["products"] = np.array(row["products"])
 
         triples = extract_relationships_from_row(row)
 
         # Expected relationship types based on the data structure
         expected_relationship_types = [
-            "sponsorship",      # application -> sponsor
-            "manufacturing",    # application -> manufacturer
-            "identification",   # application -> NDC/RxCUI/SPL
-            "substance",        # application -> UNII substance
-            "product",          # application -> products
-            "ingredient",       # product -> ingredients
-            "strength",         # ingredient -> strength
-            "route",           # product -> route
-            "dosage_form"      # product -> dosage form
+            "sponsorship",  # application -> sponsor
+            "manufacturing",  # application -> manufacturer
+            "identification",  # application -> NDC/RxCUI/SPL
+            "substance",  # application -> UNII substance
+            "product",  # application -> products
+            "ingredient",  # product -> ingredients
+            "strength",  # ingredient -> strength
+            "route",  # product -> route
+            "dosage_form",  # product -> dosage form
         ]
 
         # Count occurrences of each relationship type
         relationship_counts = dict.fromkeys(expected_relationship_types, 0)
 
-        for subject, predicate, obj in triples:
+        for _subject, predicate, obj in triples:
             pred_str = str(predicate)
 
             if "000136" in pred_str:  # SIO:is sponsored by
@@ -366,11 +406,17 @@ class TTLComparisonTest:
                 relationship_counts["manufacturing"] += 1
             elif "000671" in pred_str:  # SIO:has identifier
                 relationship_counts["identification"] += 1
-            elif "0000057" in pred_str and "unii:" in str(obj):  # RO:has participant + UNII
+            elif "0000057" in pred_str and "unii:" in str(
+                obj
+            ):  # RO:has participant + UNII
                 relationship_counts["substance"] += 1
-            elif "0000057" in pred_str and "/product/" in str(obj):  # product relationship
+            elif "0000057" in pred_str and "/product/" in str(
+                obj
+            ):  # product relationship
                 relationship_counts["product"] += 1
-            elif "0000057" in pred_str and "/ingredient/" in str(obj):  # ingredient relationship
+            elif "0000057" in pred_str and "/ingredient/" in str(
+                obj
+            ):  # ingredient relationship
                 relationship_counts["ingredient"] += 1
             elif "000221" in pred_str:  # SIO:has measurement value (strength)
                 relationship_counts["strength"] += 1
@@ -380,8 +426,12 @@ class TTLComparisonTest:
                 relationship_counts["dosage_form"] += 1
 
         # Verify that we have the expected relationships
-        assert relationship_counts["sponsorship"] >= 1, "Missing sponsorship relationships"
-        assert relationship_counts["identification"] >= 1, "Missing identification relationships"
+        assert (
+            relationship_counts["sponsorship"] >= 1
+        ), "Missing sponsorship relationships"
+        assert (
+            relationship_counts["identification"] >= 1
+        ), "Missing identification relationships"
         assert relationship_counts["product"] >= 1, "Missing product relationships"
 
         # Log the relationship counts for debugging
