@@ -27,6 +27,8 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "biobricks"
         update-types: ["version-update:semver-major"]
+    # Use uv for dependency resolution
+    package-manager: "uv"
 
   # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"
