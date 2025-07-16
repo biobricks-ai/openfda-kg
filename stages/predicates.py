@@ -20,6 +20,7 @@ class Predicates:
     - Identifier predicates for various ID types
     - Label predicates for names and descriptions
     - Temporal predicates for dates and time-based info
+    - Document and data predicates for files and data resources
     """
     
     def __init__(self, namespaces: dict):
@@ -45,14 +46,19 @@ class Predicates:
         return self._namespaces["SDDO"]["3000014"]
     
     @property
-    def has_manufacturer(self) -> URIRef:
-        """RO predicate for manufacturing relationships (RO:0000737)."""
-        return self._namespaces["RO"]["0000737"]
+    def created_by(self) -> URIRef:
+        """RO predicate for manufacturing relationships (oboInOwl:created_by)."""
+        return self._namespaces["DRON"]["created_by"]
     
     @property
     def has_participant(self) -> URIRef:
         """RO predicate for participation relationships (RO:0000057)."""
         return self._namespaces["RO"]["0000057"]
+
+    @property
+    def composed_of(self) -> URIRef:
+        """RO predicate for participation relationships (AFX:0000940)."""
+        return self._namespaces["AFO"]["0000940"]
     
     @property
     def is_component_of(self) -> URIRef:
@@ -68,7 +74,13 @@ class Predicates:
     def has_exposure_route(self) -> URIRef:
         """ExO predicate for exposure route relationships (ExO:0000002)."""
         return self._namespaces["RO"]["0002242"]
+
+    @property
+    def has_product_type(self) -> URIRef:
+        """SIO predicate for product type relationships (SIO:000332)."""
+        return self._namespaces["SIO"]["000332"]
     
+    # TODO: Verify the rest of the predicates below are useful
     # =============================================================================
     # ATTRIBUTE PREDICATES - Properties and characteristics
     # =============================================================================
@@ -112,12 +124,10 @@ class Predicates:
         """SIO predicate for identifier relationships (SIO:000671)."""
         return self._namespaces["SIO"]["000671"]
     
-    # TODO: incorrect URI
     @property
     def identifier(self) -> URIRef:
         """Dublin Core terms identifier (dcterms:identifier)."""
         return self._namespaces["dcterms"]["identifier"]
-    
     
     @property
     def dc_type(self) -> URIRef:
@@ -194,11 +204,16 @@ class EntityTypes:
         """Initialize with namespace dictionary."""
         self._namespaces = namespaces
     
+    @property
+    def drug_class(self) -> URIRef:
+        """SIO drug class type (SIO:010038)."""
+        return self._namespaces["SIO"]["010038"]
+
     # Organizations and companies
     @property
-    def organization(self) -> URIRef:
-        """SIO organization type (SIO:000012)."""
-        return self._namespaces["SIO"]["000012"]
+    def manufacturer(self) -> URIRef:
+        """OBI manufacturer type (OBI:0000835)."""
+        return self._namespaces["OBI"]["0000835"]
     
     # Chemical and pharmaceutical entities
     @property
