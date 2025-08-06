@@ -1,1 +1,2 @@
-https://github.com/biobricks-ai/openfda#a12c971adf06528d969169d2fbdb0f0a35c08464
+https://github.com/biobricks-ai/openfda#1442c0ced045bcf84fb39d182f65637833c9af09
+https://github.com/biobricks-ai/sider#780eaa42269927ec5169b2e09609d5ca6e8ae940
