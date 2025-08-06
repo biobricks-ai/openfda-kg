@@ -10,16 +10,20 @@
 
 stages:
   biobricks_init:
-    cmd: uv run stages/00_biobricks_init.sh
+    cmd: stages/00_biobricks_init.sh
     deps:
       - stages/00_biobricks_init.sh
     always_changed: true
   process: 
-    cmd: uv run python3 stages/01_process.py
+    cmd: stages/01_download.sh
     deps:
-      - stages/01_process.py
-      - stages/predicates.py
-      - stages/uri_builders.py
-      - .bb/dependencies.txt
+      - stages/01_download.sh
     outs:
-      - cache/process
+      - stages/aux/CID-Synonym-filtered
+  sider:
+    cmd: uv run python3 stages/02_sider.py
+    deps:
+      - stages/02_sider.py
+      - stages/aux
+    outs:
+      - brick

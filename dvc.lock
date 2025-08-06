@@ -31,7 +31,7 @@ stages:
       size: 118795175
       nfiles: 29
   biobricks_init:
-    cmd: uv run stages/00_biobricks_init.sh
+    cmd: stages/00_biobricks_init.sh
     deps:
     - path: stages/00_biobricks_init.sh
       hash: md5
