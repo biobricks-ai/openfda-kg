@@ -49,14 +49,13 @@ con.sql("""
             SELECT unnest(openfda)
             FROM fda_parquet
         )
-        WHERE brand_name IS NOT NULL AND rxcui IS NOT NULL
+        WHERE brand_name IS NOT NULL
     )
     SELECT DISTINCT ON (brand_name)
         brand_name,
         array_agg(DISTINCT generic_name) as generic_name,
         array_agg(DISTINCT rxcui_item) as rxcui
     FROM unnested_data
-	WHERE rxcui_item IS NOT NULL
     GROUP BY brand_name
 """)
 
@@ -90,10 +89,6 @@ con.sql("""
 	LEFT JOIN dosage_forms_map 
 	ON LOWER(p.dosage_form) = LOWER(dosage_forms_map.dosage_form)
 """)
-products = con.table("products")
-products.show()
-side_effects = con.table("side_effects")
-side_effects.show()
 
 con.sql("""
 	CREATE OR REPLACE TABLE products AS
@@ -149,78 +144,83 @@ con.sql("""
 con.sql("""
 	CREATE OR REPLACE TABLE products AS
 	SELECT 
-		active_ingredients,
 		brand_name,
 		dosage_form_code,
 		marketing_status_code,
 		route_code,
 		(
-			SELECT array_agg(DISTINCT s.CID)
+			SELECT array_agg(DISTINCT struct_pack(name := ingredient.name, strength := ingredient.strength, cid := s.CID))
 			FROM (
 				SELECT unnest(active_ingredients) as ingredient
 			)
 			INNER JOIN synonyms s 
 			ON UPPER(TRIM(s.Drug)) = UPPER(TRIM(ingredient.name))
-		) as cids
+		) as ingredients
 	FROM products
 """)
 con.sql("""
 	CREATE OR REPLACE TABLE products AS
 	SELECT 
-		p.active_ingredients,
 		p.brand_name,
 		p.dosage_form_code,
 		p.marketing_status_code,
 		p.route_code,
-		p.cids,
+		p.ingredients,
 		o.rxcui
 	FROM products p
 	LEFT JOIN openfda o ON p.brand_name = o.brand_name
 """)
-products = con.table("products")
-products.show()
 
-# Join products with side_effects using the CIDs array
 con.sql("""
-	CREATE OR REPLACE TABLE fda_side_effects AS
+    CREATE OR REPLACE TABLE fda_side_effects AS
 	SELECT 
-		p.active_ingredients,
 		p.brand_name,
 		p.dosage_form_code,
 		p.marketing_status_code,
 		p.route_code,
-		p.cids,
+		p.ingredients,
 		p.rxcui,
-		array_agg(DISTINCT se.UMLS_CUI) FILTER (WHERE se.UMLS_CUI IS NOT NULL) as umls_cuis,
-		array_agg(DISTINCT se.UMLS_CUI_for_MedDRA_Term) FILTER (WHERE se.UMLS_CUI_for_MedDRA_Term IS NOT NULL) as umls_cui_for_meddra_terms,
+		array_agg(DISTINCT struct_pack(cui := u.cui, concept := u.concept)) as side_effect
 	FROM products p
 	LEFT JOIN (
 		SELECT DISTINCT
-			active_ingredients,
 			brand_name,
 			dosage_form_code,
 			marketing_status_code,
 			route_code,
-			cids,
-			unnest(cids) as cid
+			ingredients,
+			unnest(ingredients) as ingredient
 		FROM products
-		WHERE cids IS NOT NULL
 	) p_unnested ON (
-		p.active_ingredients IS NOT DISTINCT FROM p_unnested.active_ingredients
-		AND p.brand_name = p_unnested.brand_name
+		p.brand_name = p_unnested.brand_name
 		AND p.dosage_form_code IS NOT DISTINCT FROM p_unnested.dosage_form_code
 		AND p.marketing_status_code IS NOT DISTINCT FROM p_unnested.marketing_status_code
 		AND p.route_code IS NOT DISTINCT FROM p_unnested.route_code
 	)
-	LEFT JOIN side_effects se ON CAST(se.STITCH_Compound_ID_stereo AS BIGINT) = p_unnested.cid
-	WHERE p.rxcui IS NOT NULL
+	LEFT JOIN (
+		SELECT 
+			STITCH_Compound_ID_stereo,
+			UMLS_CUI as cui,
+			UMLS_CUI_Concept_Name as concept,
+		FROM side_effects
+		WHERE UMLS_CUI IS NOT NULL
+		
+		UNION
+		
+		SELECT 
+			STITCH_Compound_ID_stereo,
+			UMLS_CUI_for_MedDRA_Term as cui,
+			MedDRA_Concept_Name as concept,
+		FROM side_effects
+		WHERE UMLS_CUI_for_MedDRA_Term IS NOT NULL
+	) u ON CAST(u.STITCH_Compound_ID_stereo AS BIGINT) = p_unnested.ingredient.cid
+	WHERE p.brand_name IS NOT NULL
 	GROUP BY 
-		p.active_ingredients,
 		p.brand_name,
 		p.dosage_form_code,
 		p.marketing_status_code,
 		p.route_code,
-		p.cids,
+		p.ingredients,
 		p.rxcui
 """)
 fda_side_effects = con.table("fda_side_effects")
@@ -229,81 +229,117 @@ fda_side_effects.show()
 
 
 
-
-
 g = Graph()
 
 # Define namespaces for your ontology
-UMLS = Namespace("https://evsexplore.semantics.cancer.gov/evsexplore/concept/ncim/")
+UMLS = Namespace("http://identifiers.org/umls:")
 RDF = Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#")
 RDFS = Namespace("http://www.w3.org/2000/01/rdf-schema#")
-BFO = Namespace("http://purl.obolibrary.org/obo/BFO_")
-EXO = Namespace("http://purl.obolibrary.org/obo/ExO_")
 GENE = Namespace("http://www.geneontology.org/formats/oboInOwl#")
 RO = Namespace("http://purl.obolibrary.org/obo/RO_")
 EDAM = Namespace("http://edamontology.org/")
 EX = Namespace("http://example.org/drug/")
-RXCUI = Namespace("https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=")
+RXCUI = Namespace("http://purl.bioontology.org/ontology/RXNORM/")
+DCE = Namespace("http://purl.org/dc/elements/1.1/")
+BFO = Namespace("http://purl.obolibrary.org/obo/BFO_")
+PUBCHEM = Namespace("http://rdf.ncbi.nlm.nih.gov/pubchem/compound/CID")
+SIO = Namespace("http://semanticscience.org/resource/SIO_")
 
 # Bind namespaces to the graph
 g.bind("umls", UMLS)
 g.bind("rdf", RDF)
 g.bind("rdfs", RDFS)
-g.bind("bfo", BFO)
-g.bind("exo", EXO)
 g.bind("gene", GENE)
 g.bind("ro", RO)
 g.bind("edam", EDAM)
+g.bind("ex", EX)
 g.bind("rxcui", RXCUI)
+g.bind("dce", DCE)
+g.bind("bfo", BFO)
+g.bind("pubchem", PUBCHEM)
+g.bind("sio", SIO)
+
 
 # Iterate through the products_meddra table and create triples
 for row in tqdm(fda_side_effects.fetchall(), desc="Creating triples"):
-	active_ingredients, brand_name, dosage_form, marketing_status, route, cids, rxcuis, umls_cuis, umls_cuis_meddra = row
+	brand_name, dosage_form, marketing_status, route, ingredients, rxcuis, side_effects = row
 	
-	if rxcuis is None: continue
+	if not brand_name: continue
 
 	# Create URI for the drug product
-	# drug_subject = URIRef(EX[f"{brand_name.replace(' || ', '_').replace(' ', '_')}"])
-	for rxcui in rxcuis:
-		drug_subject = RXCUI[f"{rxcui}"]
-		# drug_subject = Literal(brand_name)
-		
-		# Drug is a type of Proprietary Name (brand name; NCIT:C71898)
+	drug_subject = EX[f"{hash(brand_name)}"]
+	# Drug is a type of Medication (NCIT:C459)
+	g.add((drug_subject, RDF.type, UMLS["C0013227"]))
+
+	if ingredients:
+		for name, strength, cid in ingredients:
+			# drug has part cid + cid part of drug
+			g.add((drug_subject, BFO["0000051"], PUBCHEM[f"{cid}"]))
+			g.add((PUBCHEM[f"{cid}"], BFO["0000050"], drug_subject))
+
+			# cid has type active ingredient
+			g.add((PUBCHEM[f"{cid}"], RDF.type, UMLS["C1372955"]))
+			# cid has value strength
+			g.add((PUBCHEM[f"{cid}"], SIO["has-value"], Literal(f"{strength}")))
+			
+
+	# drug has label brand_name
+	if brand_name:
+		g.add((drug_subject, RDFS.label, Literal(brand_name)))
+		# drug is a type of Proprietary Name (brand name; NCIT:C71898)
 		g.add((drug_subject, RDF.type, UMLS["C0592503"]))
-		# Drug is a type of Medication (NCIT:C459)
-		g.add((drug_subject, RDF.type, UMLS["C0013227"]))
-		# TODO: Create a label for the drug when it is mapped to a proper URI
-		if brand_name:
-			g.add((drug_subject, RDFS.label, Literal(brand_name)))
+	
+	# Drug has basic dose form
+	if dosage_form and re.match(r'^C[0-9]+$', str(dosage_form)):
+		g.add((drug_subject, UMLS["CL547851"], UMLS[f"{dosage_form}"]))
+		# dosage_form is a type of dosage_form
+		g.add((UMLS[f"{dosage_form}"], RDF.type, UMLS["C0013058"]))
+		# dosage_form has source openfda
+		g.add((UMLS[f"{dosage_form}"], DCE.source, Literal("openFDA")))
+	# Drug has status
+	if marketing_status and re.match(r'^C[0-9]+$', str(marketing_status)):
+		g.add((drug_subject, GENE.status, UMLS[f"{marketing_status}"]))
+		# marketing_status has type spl marketing status terminology
+		g.add((UMLS[f"{marketing_status}"], RDF.type, UMLS["C3897481"]))
+		# marketing status has source openfda
+		g.add((UMLS[f"{marketing_status}"], DCE.source, Literal("openFDA")))
+	# Drug has exposure route
+	if route and re.match(r'^C[0-9]+$', str(route)):
+		g.add((drug_subject, RO["0002242"], UMLS[f"{route}"]))
+		# route is a type of drug route of administration
+		g.add((UMLS[f"{route}"], RDF.type, UMLS["C0013153"]))
+		# route has source openfda
+		g.add((UMLS[f"{route}"], DCE.source, Literal("openFDA")))
+	
+	# drug has identifier cid
+	if rxcuis:
+		for rxcui in rxcuis:
+			g.add((drug_subject, EDAM.has_identifier, RXCUI[f"{rxcui}"]))
 
-		
+			# identifier has type identifier
+			g.add((RXCUI[f"{rxcui}"], RDF.type, UMLS["C2348662"]))
+			# identifier has type proprietary name
+			g.add((RXCUI[f"{rxcui}"], RDF.type, UMLS["C0592503"]))
+			# identifier has source Drugs@FDA
+			g.add((RXCUI[f"{rxcui}"], DCE.source, Literal("openFDA")))
+			# rxcui has label brand_name
+			g.add((RXCUI[f"{rxcui}"], RDF.label, Literal(brand_name)))
+	if side_effects:
+		for cui, concept in side_effects:
+			# drug has side effect term (umls term)
+			g.add((drug_subject, UMLS["C0879626"], UMLS[f"{cui}"]))
 
-		# Drug has basic dose form (SNOMEDCT:)
-		if dosage_form and re.match(r'^C[0-9]+$', str(dosage_form)):
-			g.add((drug_subject, UMLS["CL547851"], UMLS[f"{dosage_form}"]))
-		# Drug has status
-		if marketing_status and re.match(r'^C[0-9]+$', str(marketing_status)):
-			g.add((drug_subject, GENE.status, UMLS[f"{marketing_status}"]))
-		# Drug has exposure route
-		if route and re.match(r'^C[0-9]+$', str(route)):
-			g.add((drug_subject, RO["0002242"], UMLS[f"{route}"]))
-		
-		# drug has identifier cid
-		if cids:
-			for cid in cids:
-				g.add((drug_subject, EDAM.has_identifier, UMLS[f"{cid}"]))
-		# drug has side effect term (umls term)
-		if umls_cuis:
-			for umls_cui in umls_cuis:
-				g.add((drug_subject, UMLS["C0879626"], UMLS[f"{umls_cui}"]))
-		# drug has side effect term (meddra term)
-		if umls_cuis_meddra:
-			for umls_cui_meddra in umls_cuis_meddra:
-				g.add((drug_subject, UMLS["C0879626"], UMLS[f"{umls_cui_meddra}"]))
+			# identifier has type identifier
+			g.add((UMLS[f"{cui}"], RDF.type, UMLS["C1707476"]))
+			# identifier has source source
+			g.add((UMLS[f"{cui}"], DCE.source, Literal("SIDER 4.1")))
+			# identifier has label concept name
+			g.add((UMLS[f"{cui}"], RDFS.label, Literal(str(concept))))
 
 if not os.path.exists("brick"):
     os.mkdir("brick")
 
 # Save the graph to a file
-g.serialize(destination="brick/side_effects.ttl", format="turtle")
+g.serialize(destination="brick/drugs@fda.ttl", format="turtle")
 print(f"Created {len(g)} triples")
+con.close()
