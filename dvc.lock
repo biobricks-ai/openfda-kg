@@ -34,16 +34,15 @@ stages:
     deps:
     - path: stages/02_sider.py
       hash: md5
-      md5: 85b7c4f7061b1de09d504629d2267858
-      size: 11134
+      md5: 47aa2335aa71d2a4fac59ca48137ef16
+      size: 10669
     - path: stages/aux
       hash: md5
       md5: 07f78f8eaf5be7b1fa1ec28dcdcaf424.dir
       size: 3985043642
       nfiles: 6
     outs:
-    - path: brick
+    - path: brick/drugs@fda.ttl
       hash: md5
-      md5: daa8fee6d4f6e556b3e77022308324a3.dir
-      size: 1410407
-      nfiles: 1
+      md5: 5c225f76b845b37b37d41add4014ecc4
+      size: 3092392
