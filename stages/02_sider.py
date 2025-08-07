@@ -180,7 +180,7 @@ con.sql("""
 		p.route_code,
 		p.ingredients,
 		p.rxcui,
-		array_agg(DISTINCT struct_pack(cui := u.cui, concept := u.concept)) as side_effect
+		array_agg(DISTINCT struct_pack(cui := u.cui, concept := u.concept)) FILTER (WHERE u.cui IS NOT NULL OR u.concept IS NOT NULL) as side_effect
 	FROM products p
 	LEFT JOIN (
 		SELECT DISTINCT
@@ -290,26 +290,33 @@ for row in tqdm(fda_side_effects.fetchall(), desc="Creating triples"):
 		g.add((drug_subject, RDF.type, UMLS["C0592503"]))
 	
 	# Drug has basic dose form
-	if dosage_form and re.match(r'^C[0-9]+$', str(dosage_form)):
+	if re.match(r'^C[0-9]+$', str(dosage_form)):
 		g.add((drug_subject, UMLS["CL547851"], UMLS[f"{dosage_form}"]))
 		# dosage_form is a type of dosage_form
 		g.add((UMLS[f"{dosage_form}"], RDF.type, UMLS["C0013058"]))
 		# dosage_form has source openfda
 		g.add((UMLS[f"{dosage_form}"], DCE.source, Literal("openFDA")))
+	else:
+		g.add((drug_subject, UMLS["CL547851"], Literal(f"{dosage_form}")))
 	# Drug has status
-	if marketing_status and re.match(r'^C[0-9]+$', str(marketing_status)):
+	if re.match(r'^C[0-9]+$', str(marketing_status)):
 		g.add((drug_subject, GENE.status, UMLS[f"{marketing_status}"]))
 		# marketing_status has type spl marketing status terminology
 		g.add((UMLS[f"{marketing_status}"], RDF.type, UMLS["C3897481"]))
 		# marketing status has source openfda
 		g.add((UMLS[f"{marketing_status}"], DCE.source, Literal("openFDA")))
+	else:
+		g.add((drug_subject, GENE.status, Literal(f"{marketing_status}")))
 	# Drug has exposure route
-	if route and re.match(r'^C[0-9]+$', str(route)):
-		g.add((drug_subject, RO["0002242"], UMLS[f"{route}"]))
-		# route is a type of drug route of administration
-		g.add((UMLS[f"{route}"], RDF.type, UMLS["C0013153"]))
-		# route has source openfda
-		g.add((UMLS[f"{route}"], DCE.source, Literal("openFDA")))
+	if route:
+		if re.match(r'^C[0-9]+$', str(route)):
+			g.add((drug_subject, RO["0002242"], UMLS[f"{route}"]))
+			# route is a type of drug route of administration
+			g.add((UMLS[f"{route}"], RDF.type, UMLS["C0013153"]))
+			# route has source openfda
+			g.add((UMLS[f"{route}"], DCE.source, Literal("openFDA")))
+		else:
+			g.add((drug_subject, RO["0002242"], Literal(f"{route}")))
 	
 	# drug has identifier cid
 	if rxcuis:
@@ -342,4 +349,13 @@ if not os.path.exists("brick"):
 # Save the graph to a file
 g.serialize(destination="brick/drugs@fda.ttl", format="turtle")
 print(f"Created {len(g)} triples")
+
+# close the duckdb con
 con.close()
+
+from datetime import datetime
+import time
+# debugging purposes triple counts:
+triple_count_file = open('triple_count.txt', 'a')
+triple_count_file.write(f"{len(g)} triples @ {datetime.now()} or {time.time()}")
+triple_count_file.close()
