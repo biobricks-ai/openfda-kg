@@ -26,4 +26,4 @@ stages:
       - stages/02_sider.py
       - stages/aux
     outs:
-      - brick
+      - brick/drugs@fda.ttl

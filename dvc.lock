@@ -9,27 +9,18 @@ stages:
       size: 153
       isexec: true
   process:
-    cmd: uv run python3 stages/01_process.py
+    cmd: stages/01_download.sh
     deps:
-    - path: .bb/dependencies.txt
+    - path: stages/01_download.sh
       hash: md5
-      md5: aaae1b8918493bd50f929cc609f654d6
-      size: 81
-    - path: stages/01_process.py
-      hash: md5
-      md5: e7bd717341c646fe89c48f1a4ed06e1a
-      size: 22239
+      md5: cc3c3a199c7761331e58325a8d41e17e
+      size: 1577
       isexec: true
-    - path: stages/predicates.py
-      hash: md5
-      md5: 5f404a5d171b9e914f319a34063a6344
-      size: 9354
     outs:
-    - path: cache/process
+    - path: stages/aux/CID-Synonym-filtered
       hash: md5
-      md5: 9c811f494abf5e37e795e1bdee9b279e.dir
-      size: 118795175
-      nfiles: 29
+      md5: 4b7d8aa4d04cbd7ec50a73d4663540c9
+      size: 3985032078
   biobricks_init:
     cmd: stages/00_biobricks_init.sh
     deps:
@@ -38,3 +29,21 @@ stages:
       md5: 9efdfd61fbc69ea6592d7b4e5a3c871d
       size: 153
       isexec: true
+  sider:
+    cmd: uv run python3 stages/02_sider.py
+    deps:
+    - path: stages/02_sider.py
+      hash: md5
+      md5: 85b7c4f7061b1de09d504629d2267858
+      size: 11134
+    - path: stages/aux
+      hash: md5
+      md5: 07f78f8eaf5be7b1fa1ec28dcdcaf424.dir
+      size: 3985043642
+      nfiles: 6
+    outs:
+    - path: brick
+      hash: md5
+      md5: daa8fee6d4f6e556b3e77022308324a3.dir
+      size: 1410407
+      nfiles: 1
