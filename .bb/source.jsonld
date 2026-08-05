@@ -1,0 +1,56 @@
+{
+  "@context": "../../context/source.context.jsonld",
+  "@type": "dcat:Dataset",
+  "@id": "https://biobricks.ai/bricks/openfda-kg",
+  "dcterms:title": "openfda-kg (openFDA knowledge-graph brick; upstream source unconfigured)",
+  "dcterms:description": "A BioBricks brick intended to build a knowledge graph from openFDA data. The repository is only an initial commit generated from the brick-template: the download stage (stages/01_download.sh) references an FTP base URL that is left empty ('export ftpbase=\"\"'), the README is the unedited template, and there is no dvc.lock output or .bb metadata. The exact upstream source therefore cannot be verified from the repository, though the brick name and csv2parquet build strongly imply U.S. FDA openFDA data (open.fda.gov), which is public domain (CC0 1.0).",
+  "dcterms:license": {
+    "@id": "https://github.com/biobricks-ai/openfda-kg",
+    "dcterms:title": "Undetermined: upstream download source unconfigured (empty ftpbase); no license recorded in the repository. Probable but unconfirmed source is openFDA (CC0 1.0)."
+  },
+  "dcterms:publisher": "Unknown (likely openFDA / U.S. FDA)",
+  "dcterms:identifier": "https://github.com/biobricks-ai/openfda-kg",
+  "biobricks:licenseName": "Undetermined (upstream unconfigured; probable openFDA CC0)",
+  "biobricks:licenseClass": "unknown",
+  "biobricks:merckCommercialUse": "unknown",
+  "biobricks:licenseEvidence": [
+    {
+      "source": "stages/01_download.sh",
+      "quote": "# Define the FTP base address\nexport ftpbase=\"\"\n... wget --no-remove-listing $ftpbase",
+      "confidence": "high"
+    },
+    {
+      "source": "git log (biobricks-ai/openfda-kg) and README.md",
+      "quote": "Single commit '644454f Initial commit'; README.md is the unedited 'How to build bricks' template with no source URL.",
+      "confidence": "high"
+    },
+    {
+      "source": "https://open.fda.gov/license/ (probable-source terms, not confirmed for this brick)",
+      "quote": "the content, data, documentation, code, and related materials on openFDA is public domain and made available with a Creative Commons CC0 1.0 Universal dedication.",
+      "confidence": "low"
+    }
+  ],
+  "biobricks:reviewed": false,
+  "biobricks:reviewNotes": "Determined by the BioBricks licensing-provenance annotation agent (Claude). This brick's download stage is UNCONFIGURED: the FTP base URL is an empty string ('export ftpbase=\"\"'), the repo is a single initial commit from the brick-template with an unedited README and no dvc.lock outputs or .bb metadata. There is no verifiable evidence of what data it actually downloads. The name 'openfda-kg' and the generic csv2parquet build suggest a knowledge graph derived from openFDA (which is CC0 / public domain, and would make it open/permitted), but this cannot be confirmed from the repository, so it is conservatively classed unknown / commercial unknown. HUMAN REVIEW REQUIRED: identify the real upstream source (the empty ftpbase must be filled in); if it is confirmed to be openFDA data, this can be upgraded to open / CC0 / commercial-use permitted.",
+  "prov:wasDerivedFrom": [
+    {
+      "@type": "dcat:Dataset",
+      "@id": "https://open.fda.gov/",
+      "dcterms:title": "Probable upstream: openFDA (U.S. FDA) \u2014 UNVERIFIED; download stage ftpbase is empty",
+      "dcterms:license": {
+        "@id": "https://open.fda.gov/license/",
+        "dcterms:title": "Undetermined for this brick; probable-source openFDA is CC0 1.0 but the pipeline is unconfigured so this is unconfirmed."
+      },
+      "dcterms:publisher": "Unknown (likely U.S. Food and Drug Administration / openFDA)",
+      "dcat:landingPage": "https://open.fda.gov/"
+    }
+  ],
+  "prov:wasGeneratedBy": {
+    "@type": "prov:Activity",
+    "prov:wasAssociatedWith": "BioBricks licensing-provenance annotation agent (Claude, slice items[1236:1242])",
+    "prov:endedAtTime": {
+      "@type": "xsd:dateTime",
+      "@value": "2026-08-05T00:00:00Z"
+    }
+  }
+}
