@@ -1,36 +1,59 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-# Script to download files
+# Download script for files from NCBI PubChem and other sources
+# This script downloads files to the ./stages/aux/ directory
 
-# Get local path
-localpath=$(pwd)
-echo "Local path: $localpath"
+set -e  # Exit on any error
 
-# Create the list directory to save list of remote files and directories
-listpath="$localpath/list"
-echo "List path: $listpath"
-mkdir -p $listpath
-cd $listpath;
+# Define variables
+TARGET_DIR="./stages/aux"
 
-# Define the FTP base address
-export ftpbase=""
+# Array of URLs to download
+# Add more URLs here as needed
+URLS=(
+    "https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-Synonym-filtered.gz"
+    # Add more URLs here, for example:
+    # "https://example.com/file1.gz"
+    # "https://example.com/file2.txt"
+)
 
-# Retrieve the list of files to download from FTP base address
-wget --no-remove-listing $ftpbase
-cat index.html | grep -Po '(?<=href=")[^"]*' | sort | cut -d "/" -f 10 > files.txt
-rm .listing
-rm index.html
+echo "Starting download of ${#URLS[@]} file(s)..."
 
-# Create the download directory
-export downloadpath="$localpath/download"
-echo "Download path: $downloadpath"
-mkdir -p "$downloadpath"
-cd $downloadpath;
+# Create target directory if it doesn't exist
+mkdir -p "$TARGET_DIR"
 
-# Download files in parallel
-cat $listpath/files.txt | xargs -P14 -n1 bash -c '
-  echo $0
-  wget -nH -q -nc -P $downloadpath $ftpbase$0
-'
+# Function to download a single file
+download_file() {
+    local url="$1"
+    local filename=$(basename "$url")
+    local target_path="$TARGET_DIR/$filename"
+    
+    # Check if file already exists
+    if [ -f "$target_path" ] || [ -f "${target_path%.gz}" ]; then
+        echo "File already in specified directory: $TARGET_DIR"
+        return 0
+    fi
+    
+    # Download the file using wget or curl
+    if command -v wget >/dev/null 2>&1; then
+        wget -O "$target_path" "$url" -q --show-progress
+    elif command -v curl >/dev/null 2>&1; then
+        curl -L -o "$target_path" "$url"
+    else
+        return 1
+    fi
+    
+    # Unzip .gz files if they exist
+    if [[ "$filename" == *.gz ]]; then
+        gunzip -f "$target_path"
+    fi
+}
 
-echo "Download done."
+# Download each file in the array
+for url in "${URLS[@]}"; do
+    if [ -n "$url" ]; then  # Skip empty lines
+        download_file "$url"
+    fi
+done
+
+echo "Download script completed and unzipped. Processed ${#URLS[@]} file(s)."

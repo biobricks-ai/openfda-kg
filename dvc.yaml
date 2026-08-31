@@ -9,27 +9,21 @@
 # dvc repro <stage>
 
 stages:
-  download:
+  biobricks_init:
+    cmd: stages/00_biobricks_init.sh
+    deps:
+      - stages/00_biobricks_init.sh
+    always_changed: true
+  process: 
     cmd: stages/01_download.sh
     deps:
       - stages/01_download.sh
     outs:
-      - download
-      - list
-  unzip: 
-    cmd: stages/02_unzip.sh
+      - stages/aux/CID-Synonym-filtered
+  sider:
+    cmd: uv run python3 stages/02_sider.py
     deps:
-      - stages/02_unzip.sh
-      - download
-      - list
+      - stages/02_sider.py
+      - stages/aux
     outs:
-      - raw
-  build: 
-    cmd: stages/03_build.sh
-    deps:
-      - stages/03_build.sh
-      - stages/csv2parquet.sh
-      - raw
-      - list
-    outs:
-      - brick
+      - brick/drugs@fda.ttl
